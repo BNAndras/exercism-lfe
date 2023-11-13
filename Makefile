@@ -4,7 +4,7 @@ REBAR3   := $(shell which rebar3)
 null     :=
 space    := $(null) #
 comma    := ,
-testmods := $(basename $(notdir $(wildcard exercises/*/test/*.lfe)))
+testmods := $(basename $(notdir $(wildcard exercises/*/tes/*.lfe)))
 
 ifeq ($(ERL),)
   $(error Can't find Erlang executable 'erl')
