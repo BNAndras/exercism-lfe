@@ -13,7 +13,7 @@
 # Requires scripts:
 # - bin/verify-exercises
 
-name: LFE / Test
+name: Verify Exercises
 
 on:
   push:
