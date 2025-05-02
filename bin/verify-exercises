@@ -18,7 +18,7 @@ function run_test () {
 
   pushd exercises/practice/${exercise} > /dev/null
 
-  ln -s $(pwd)/.meta/example.lfe src/${exercise}.lfe # file exists
+  cp -f $(pwd)/.meta/example.lfe src/${exercise}.lfe # file exists
 
   printf "%sTesting%s: %s -- " "${yellow}" "${reset}" "${exercise}"
   output=$(rebar3 eunit) # command not found
