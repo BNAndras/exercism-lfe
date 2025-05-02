@@ -23,13 +23,30 @@ on:
 
 jobs:
   ci:
-    runs-on: ubuntu-22.04
-    container:
-      image: exercism/lfe-test-runner
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+  
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y erlang git make
+
+      - name: Install rebar3
+        run: |
+          git clone https://github.com/erlang/rebar3.git
+          cd rebar3
+          ./bootstrap
+          cd ..
+
+      - name: Install LFE
+        run: |
+          git clone https://github.com/lfe/lfe.git
+          cd lfe
+          sudo make install
 
       - name: Verify all exercises
         run: bin/verify-exercises
