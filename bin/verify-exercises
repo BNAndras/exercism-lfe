@@ -9,36 +9,6 @@ reset=$(tput -Txterm sgr0)
 
 failures=()
 
-
-# set -ex
-
-red=$(tput -Txterm setaf 1)
-green=$(tput -Txterm setaf 2)
-yellow=$(tput -Txterm setaf 3)
-reset=$(tput -Txterm sgr0)
-
-failures=()
-
-function register_fail () {
-  failures+=($1)
-}
-
-function run_test () {
-  local exercise=${1}
-
-  pushd exercises/practice/${exercise} > /dev/null
-
-  ln -s $(pwd)/.meta/example.e
-
-# set -ex
-
-red=$(tput -Txterm setaf 1)
-green=$(tput -Txterm setaf 2)
-yellow=$(tput -Txterm setaf 3)
-reset=$(tput -Txterm sgr0)
-
-failures=()
-
 function register_fail () {
   failures+=($1)
 }
@@ -59,47 +29,7 @@ function run_test () {
     printf "%sPASS%s\n" "${green}" "${reset}"
   fi
 
-  rm -rf _deps _build src/example.erl
-
-  popd > /dev/null
-}
-rl src/example.erl
-
-  printf "%sTesting%s: %s -- " "${yellow}" "${reset}" "${exercise}"
-  output=$(rebar3 eunit)
-  if ! [ "$?" == "0" ]; then
-    register_fail ${exercise}
-    printf "%sFAIL%s\n%s" "${red}" "${reset}" "${output}"
-  else
-    printf "%sPASS%s\n" "${green}" "${reset}"
-  fi
-
-  rm -rf _deps _build src/example.erl
-
-  popd > /dev/null
-}
-
-function register_fail () {
-  failures+=($1)
-}
-
-function run_test () {
-  local exercise=${1}
-
-  pushd exercises/practice/${exercise} > /dev/null
-
-  ln -s $(pwd)/.meta/example.erl src/example.erl
-
-  printf "%sTesting%s: %s -- " "${yellow}" "${reset}" "${exercise}"
-  output=$(rebar3 eunit)
-  if ! [ "$?" == "0" ]; then
-    register_fail ${exercise}
-    printf "%sFAIL%s\n%s" "${red}" "${reset}" "${output}"
-  else
-    printf "%sPASS%s\n" "${green}" "${reset}"
-  fi
-
-  rm -rf _deps _build src/example.erl
+  #rm -rf _deps _build src/example.erl
 
   popd > /dev/null
 }
