@@ -1,45 +1,148 @@
 #!/usr/bin/env bash
 
-temp_dir_base=$(mktemp -d)
+# set -ex
 
-run_test() {
-    slug=$(basename $1)
-    temp_dir=${temp_dir_base}/${slug}
-    mkdir -p ${temp_dir}
-    
-    cp -r "$1/." $temp_dir
+red=$(tput -Txterm setaf 1)
+green=$(tput -Txterm setaf 2)
+yellow=$(tput -Txterm setaf 3)
+reset=$(tput -Txterm sgr0)
 
-    outpath=$temp_dir/src/$slug.lfe
-    if [ "$slug" = "binary" ]; then
-        outpath=$temp_dir/src/binary-string.lfe
-    fi
+failures=()
 
-    cp $temp_dir/.meta/example.lfe $outpath
 
-    (cd /opt/test-runner && bin/run.sh $slug $temp_dir $temp_dir) || exit 1
+# set -ex
 
-    test_status="$(jq -r '.status' $temp_dir/results.json)"
+red=$(tput -Txterm setaf 1)
+green=$(tput -Txterm setaf 2)
+yellow=$(tput -Txterm setaf 3)
+reset=$(tput -Txterm sgr0)
 
-    if [ "$test_status" != "pass" ]; then
-    	echo "Tests for $slug have failed:"
-    	cat $temp_dir/results.json
-    	exit 1
-    fi
+failures=()
+
+function register_fail () {
+  failures+=($1)
 }
 
+function run_test () {
+  local exercise=${1}
 
+  pushd exercises/practice/${exercise} > /dev/null
 
-for concept_exercise_dir in ./exercises/concept/*/; do
-    if [ -d $concept_exercise_dir ]; then
-        echo "Checking $(basename "${concept_exercise_dir}") exercise..."
-        run_test $concept_exercise_dir
-    fi
-done
+  ln -s $(pwd)/.meta/example.e
 
-# Verify the Practice Exercises
-for practice_exercise_dir in ./exercises/practice/*/; do
-    if [ -d $practice_exercise_dir ]; then
-        echo "Checking $(basename "${practice_exercise_dir}") exercise..."
-        run_test $practice_exercise_dir
-    fi
-done
+# set -ex
+
+red=$(tput -Txterm setaf 1)
+green=$(tput -Txterm setaf 2)
+yellow=$(tput -Txterm setaf 3)
+reset=$(tput -Txterm sgr0)
+
+failures=()
+
+function register_fail () {
+  failures+=($1)
+}
+
+function run_test () {
+  local exercise=${1}
+
+  pushd exercises/practice/${exercise} > /dev/null
+
+  ln -s $(pwd)/.meta/example.lfe src/${exercise}.lfe
+
+  printf "%sTesting%s: %s -- " "${yellow}" "${reset}" "${exercise}"
+  output=$(rebar3 eunit)
+  if ! [ "$?" == "0" ]; then
+    register_fail ${exercise}
+    printf "%sFAIL%s\n%s" "${red}" "${reset}" "${output}"
+  else
+    printf "%sPASS%s\n" "${green}" "${reset}"
+  fi
+
+  rm -rf _deps _build src/example.erl
+
+  popd > /dev/null
+}
+rl src/example.erl
+
+  printf "%sTesting%s: %s -- " "${yellow}" "${reset}" "${exercise}"
+  output=$(rebar3 eunit)
+  if ! [ "$?" == "0" ]; then
+    register_fail ${exercise}
+    printf "%sFAIL%s\n%s" "${red}" "${reset}" "${output}"
+  else
+    printf "%sPASS%s\n" "${green}" "${reset}"
+  fi
+
+  rm -rf _deps _build src/example.erl
+
+  popd > /dev/null
+}
+
+function register_fail () {
+  failures+=($1)
+}
+
+function run_test () {
+  local exercise=${1}
+
+  pushd exercises/practice/${exercise} > /dev/null
+
+  ln -s $(pwd)/.meta/example.erl src/example.erl
+
+  printf "%sTesting%s: %s -- " "${yellow}" "${reset}" "${exercise}"
+  output=$(rebar3 eunit)
+  if ! [ "$?" == "0" ]; then
+    register_fail ${exercise}
+    printf "%sFAIL%s\n%s" "${red}" "${reset}" "${output}"
+  else
+    printf "%sPASS%s\n" "${green}" "${reset}"
+  fi
+
+  rm -rf _deps _build src/example.erl
+
+  popd > /dev/null
+}
+
+function main () {
+  local config=${1:-config.json}
+  local exercises=( $(cat config.json | jq '.exercises.practice[].slug' --raw-output | sort) )
+
+  for e in "${exercises[@]}"; do
+    run_test ${e} ${config}
+  done
+}
+
+main $@
+
+if [[ ${#failures[@]} != 0 ]]; then
+  printf "\n\n%d examples have failed:\n\n" ${#failures[@]}
+
+  for e in ${failures[@]}; do printf "* %s\n" ${e}; done
+
+  exit ${#failures[@]}
+fi
+
+printf "\n\nCongratulations, all example implementations have passed!\n\n"
+printf "                              .sssssssss.\n"
+printf "                        .sssssssssssssssssss\n"
+printf "                      sssssssssssssssssssssssss\n"
+printf "                     ssssssssssssssssssssssssssss\n"
+printf "                      @@sssssssssssssssssssssss@ss\n"
+printf "                      |s@@@@sssssssssssssss@@@@s|s\n"
+printf "               _______|sssss@@@@@sssss@@@@@sssss|s\n"
+printf "             /         sssssssss@sssss@sssssssss|s\n"
+printf "            /  .------+.ssssssss@sssss@ssssssss.|\n"
+printf "           /  /       |...sssssss@sss@sssssss...|\n"
+printf "          |  |        |.......sss@sss@ssss......|\n"
+printf "          |  |        |..........s@ss@sss.......|\n"
+printf "          |  |        |...........@ss@..........|\n"
+printf "           \  \       |............ss@..........|\n"
+printf "            \  '------+...........ss@...........|\n"
+printf "             \________ .........................|\n"
+printf "                      |.........................|\n"
+printf "                     /...........................\\ \n"
+printf "                    |.............................|\n"
+printf "                       |.......................|\n"
+printf "                           |...............|\n"
+printf "\nTake yourself a drink and code on!\n"
